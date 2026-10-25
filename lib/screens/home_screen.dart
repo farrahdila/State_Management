@@ -1,51 +1,100 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../providers/user_provider.dart';
 import 'profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
-    final provider = UserProvider.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
-      ),
-      body: provider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('State & Preferences'),
+            actions: [
+              IconButton(
+                tooltip: userProvider.isDarkMode
+                    ? 'Aktifkan Mode Terang'
+                    : 'Aktifkan Mode Gelap',
+                icon: Icon(
+                  userProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                ),
+                onPressed: () {
+                  userProvider.toggleDarkMode(!userProvider.isDarkMode);
+                },
+              ),
+              IconButton(
+                tooltip: 'Profil',
+                icon: const Icon(Icons.person),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          body: userProvider.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
+                  padding: const EdgeInsets.all(20),
                   children: [
-                    const Icon(Icons.home, size: 80, color: Colors.deepPurple),
-                    const SizedBox(height: 24),
-                    Text(
-                      provider.user.isLoggedIn
-                          ? 'Selamat datang, ${provider.user.name}!'
-                          : 'Selamat datang, Tamu!',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
+                    const Icon(
+                      Icons.waving_hand,
+                      size: 70,
+                      color: Colors.deepPurple,
                     ),
                     const SizedBox(height: 16),
-                    if (provider.user.isLoggedIn) ...[
-                      Text(
-                        'Email: ${provider.user.email}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
+                    Text(
+                      userProvider.user.name.isNotEmpty
+                          ? 'Halo, ${userProvider.user.name}!'
+                          : 'Selamat Datang!',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      userProvider.user.isLoggedIn
+                          ? 'Kamu sudah login.'
+                          : 'Silakan lengkapi profil kamu.',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Kartu jumlah kunjungan aplikasi
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(
+                          Icons.visibility,
+                          color: Colors.deepPurple,
+                        ),
+                        title: const Text('Jumlah Kunjungan'),
+                        subtitle: const Text('Total aplikasi dibuka'),
+                        trailing: Text(
+                          '${userProvider.visitCount}',
+                          style: Theme.of(context).textTheme.headlineSmall,
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        onPressed: () {
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Kartu jumlah favorit
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.favorite, color: Colors.red),
+                        title: const Text('Daftar Favorit'),
+                        subtitle: Text(
+                          '${userProvider.favorites.length} item tersimpan',
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 18),
+                        onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -53,28 +102,28 @@ class HomeScreen extends StatelessWidget {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.person),
-                        label: const Text('Lihat Profil'),
                       ),
-                    ] else ...[
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ProfileScreen(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.login),
-                        label: const Text('Login / Daftar'),
-                      ),
-                    ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Tombol menuju profil
+                    FilledButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ProfileScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.person_outline),
+                      label: const Text('Buka Profil'),
+                    ),
                   ],
                 ),
-              ),
-            ),
+        );
+      },
     );
   }
 }
-
